@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Forecasting & Analytics Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1><i class="fas fa-chart-line"></i> Sales Forecasting & Analytics Dashboard</h1>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="showUploadModal()">
+                    <i class="fas fa-upload"></i> Upload CSV
+                </button>
+            </div>
+        </header>
+
+        <!-- Upload Modal -->
+        <div id="uploadModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeUploadModal()">&times;</span>
+                <h2>Upload Sales Data (CSV)</h2>
+                <p class="help-text">CSV format: date, product, quantity, revenue</p>
+                <form id="uploadForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="csvFile">Select CSV File:</label>
+                        <input type="file" id="csvFile" name="file" accept=".csv" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeUploadModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload"></i> Upload
+                        </button>
+                    </div>
+                </form>
+                <div id="uploadStatus" class="status-message"></div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+                <div class="stat-content">
+                    <h3 id="totalRevenue">$0</h3>
+                    <p>Total Revenue</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-box"></i></div>
+                <div class="stat-content">
+                    <h3 id="totalQuantity">0</h3>
+                    <p>Total Quantity</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-cube"></i></div>
+                <div class="stat-content">
+                    <h3 id="totalProducts">0</h3>
+                    <p>Products</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-calendar"></i></div>
+                <div class="stat-content">
+                    <h3 id="dateRange">-</h3>
+                    <p>Date Range</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-section">
+            <h2>Filters</h2>
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label for="startDate">Start Date:</label>
+                    <input type="date" id="startDate" onchange="applyFilters()">
+                </div>
+                <div class="filter-group">
+                    <label for="endDate">End Date:</label>
+                    <input type="date" id="endDate" onchange="applyFilters()">
+                </div>
+                <div class="filter-group">
+                    <label for="productFilter">Product:</label>
+                    <select id="productFilter" onchange="applyFilters()">
+                        <option value="">All Products</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="groupBy">Group By:</label>
+                    <select id="groupBy" onchange="applyFilters()">
+                        <option value="day">Day</option>
+                        <option value="week">Week</option>
+                        <option value="month">Month</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="forecastMethod">Forecast Method:</label>
+                    <select id="forecastMethod">
+                        <option value="prophet">Prophet</option>
+                        <option value="arima">ARIMA</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="forecastPeriods">Forecast Periods:</label>
+                    <input type="number" id="forecastPeriods" value="30" min="7" max="365">
+                </div>
+            </div>
+            <div class="filter-actions">
+                <button class="btn btn-primary" onclick="generateForecast()">
+                    <i class="fas fa-magic"></i> Generate Forecast
+                </button>
+                <button class="btn btn-secondary" onclick="resetFilters()">
+                    <i class="fas fa-redo"></i> Reset Filters
+                </button>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-section">
+            <!-- Historical Sales Trends -->
+            <div class="chart-container">
+                <h2><i class="fas fa-chart-area"></i> Historical Sales Trends</h2>
+                <canvas id="historicalChart"></canvas>
+            </div>
+
+            <!-- Forecast Chart -->
+            <div class="chart-container">
+                <h2><i class="fas fa-crystal-ball"></i> Sales Forecast</h2>
+                <canvas id="forecastChart"></canvas>
+            </div>
+
+            <!-- Product Performance -->
+            <div class="chart-container">
+                <h2><i class="fas fa-chart-bar"></i> Product Performance</h2>
+                <canvas id="productChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Product Performance Table -->
+        <div class="table-section">
+            <h2><i class="fas fa-table"></i> Product Performance Details</h2>
+            <div class="table-container">
+                <table id="productTable">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Total Revenue</th>
+                            <th>Avg Revenue</th>
+                            <th>Total Quantity</th>
+                            <th>Avg Quantity</th>
+                            <th>Transactions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productTableBody">
+                        <tr>
+                            <td colspan="6" class="no-data">No data available. Please upload a CSV file.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+        <p>Processing...</p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
+
