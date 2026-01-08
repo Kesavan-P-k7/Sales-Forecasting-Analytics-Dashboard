@@ -9,7 +9,7 @@
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
+        
         <header class="header">
             <h1><i class="fas fa-chart-line"></i> Sales Forecasting & Analytics Dashboard</h1>
             <div class="header-actions">
@@ -19,7 +19,6 @@
             </div>
         </header>
 
-        <!-- Upload Modal -->
         <div id="uploadModal" class="modal">
             <div class="modal-content">
                 <span class="close" onclick="closeUploadModal()">&times;</span>
@@ -42,7 +41,6 @@
             </div>
         </div>
 
-        <!-- Stats Cards -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
@@ -74,7 +72,6 @@
             </div>
         </div>
 
-        <!-- Filters -->
         <div class="filters-section">
             <h2>Filters</h2>
             <div class="filters-grid">
@@ -122,28 +119,23 @@
             </div>
         </div>
 
-        <!-- Charts Section -->
         <div class="charts-section">
-            <!-- Historical Sales Trends -->
             <div class="chart-container">
                 <h2><i class="fas fa-chart-area"></i> Historical Sales Trends</h2>
                 <canvas id="historicalChart"></canvas>
             </div>
 
-            <!-- Forecast Chart -->
             <div class="chart-container">
                 <h2><i class="fas fa-crystal-ball"></i> Sales Forecast</h2>
                 <canvas id="forecastChart"></canvas>
             </div>
 
-            <!-- Product Performance -->
             <div class="chart-container">
                 <h2><i class="fas fa-chart-bar"></i> Product Performance</h2>
                 <canvas id="productChart"></canvas>
             </div>
         </div>
 
-        <!-- Product Performance Table -->
         <div class="table-section">
             <h2><i class="fas fa-table"></i> Product Performance Details</h2>
             <div class="table-container">
@@ -168,13 +160,10 @@
         </div>
     </div>
 
-    <!-- Loading Overlay -->
     <div id="loadingOverlay" class="loading-overlay" style="display: none;">
         <div class="spinner"></div>
         <p>Processing...</p>
     </div>
-
-    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="/static/js/dashboard.js"></script>
 </body>
