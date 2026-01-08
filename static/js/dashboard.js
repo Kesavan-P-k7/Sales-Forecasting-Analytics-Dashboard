@@ -1,36 +1,23 @@
-// Global variables
 let historicalChart = null;
 let forecastChart = null;
 let productChart = null;
 let csrfToken = '';
 
-// Initialize dashboard on page load
 document.addEventListener('DOMContentLoaded', function() {
-    // Get CSRF token
     csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
-    
-    // Set default dates (last 90 days)
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 90);
-    
     document.getElementById('endDate').value = endDate.toISOString().split('T')[0];
     document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
     
-    // Initialize charts
     initializeCharts();
-    
-    // Load initial data
     loadHistoricalData();
     loadProductPerformance();
-    
-    // Setup upload form
     setupUploadForm();
 });
 
-// Initialize Chart.js charts
 function initializeCharts() {
-    // Historical Sales Chart
     const historicalCtx = document.getElementById('historicalChart').getContext('2d');
     historicalChart = new Chart(historicalCtx, {
         type: 'line',
@@ -90,8 +77,7 @@ function initializeCharts() {
             }
         }
     });
-    
-    // Forecast Chart
+
     const forecastCtx = document.getElementById('forecastChart').getContext('2d');
     forecastChart = new Chart(forecastCtx, {
         type: 'line',
@@ -152,7 +138,6 @@ function initializeCharts() {
         }
     });
     
-    // Product Performance Chart
     const productCtx = document.getElementById('productChart').getContext('2d');
     productChart = new Chart(productCtx, {
         type: 'bar',
@@ -188,7 +173,6 @@ function initializeCharts() {
     });
 }
 
-// Load historical data
 async function loadHistoricalData() {
     showLoading();
     try {
@@ -210,14 +194,10 @@ async function loadHistoricalData() {
         if (data.error) {
             throw new Error(data.error);
         }
-        
-        // Update historical chart
         historicalChart.data.labels = data.dates;
         historicalChart.data.datasets[0].data = data.revenue;
         historicalChart.data.datasets[1].data = data.quantity;
         historicalChart.update();
-        
-        // Update stats
         const totalRevenue = data.revenue.reduce((a, b) => a + b, 0);
         const totalQuantity = data.quantity.reduce((a, b) => a + b, 0);
         
@@ -229,10 +209,7 @@ async function loadHistoricalData() {
             document.getElementById('dateRange').textContent = 
                 `${data.dates[0]} to ${data.dates[data.dates.length - 1]}`;
         }
-        
-        // Update product filter dropdown
         updateProductFilter(data.products);
-        
     } catch (error) {
         console.error('Error loading historical data:', error);
         showNotification('Error loading historical data: ' + error.message, 'error');
@@ -240,8 +217,6 @@ async function loadHistoricalData() {
         hideLoading();
     }
 }
-
-// Load product performance
 async function loadProductPerformance() {
     try {
         const startDate = document.getElementById('startDate').value;
@@ -258,14 +233,11 @@ async function loadProductPerformance() {
         if (data.error) {
             throw new Error(data.error);
         }
-        
-        // Update product chart
-        const products = data.products.slice(0, 10); // Top 10 products
+        const products = data.products.slice(0, 10);
         productChart.data.labels = products.map(p => p.product);
         productChart.data.datasets[0].data = products.map(p => p.total_revenue);
         productChart.update();
         
-        // Update product table
         updateProductTable(data.products);
         
     } catch (error) {
@@ -273,29 +245,22 @@ async function loadProductPerformance() {
     }
 }
 
-// Update product filter dropdown
 function updateProductFilter(products) {
     const select = document.getElementById('productFilter');
     const currentValue = select.value;
     
-    // Clear existing options except "All Products"
     select.innerHTML = '<option value="">All Products</option>';
-    
-    // Add product options
     products.forEach(product => {
         const option = document.createElement('option');
         option.value = product;
         option.textContent = product;
         select.appendChild(option);
     });
-    
-    // Restore previous selection if still valid
     if (currentValue && products.includes(currentValue)) {
         select.value = currentValue;
     }
 }
 
-// Update product performance table
 function updateProductTable(products) {
     const tbody = document.getElementById('productTableBody');
     
@@ -303,7 +268,6 @@ function updateProductTable(products) {
         tbody.innerHTML = '<tr><td colspan="6" class="no-data">No data available.</td></tr>';
         return;
     }
-    
     tbody.innerHTML = products.map(product => `
         <tr>
             <td><strong>${escapeHtml(product.product)}</strong></td>
@@ -316,7 +280,6 @@ function updateProductTable(products) {
     `).join('');
 }
 
-// Generate forecast
 async function generateForecast() {
     showLoading();
     try {
@@ -346,18 +309,13 @@ async function generateForecast() {
         if (data.error) {
             throw new Error(data.error);
         }
-        
-        // Load historical data to combine with forecast
         await loadHistoricalData();
-        
-        // Update forecast chart
         const historicalData = historicalChart.data;
         const forecastDates = data.forecasts.map(f => f.date);
         const forecastValues = data.forecasts.map(f => f.forecast);
         const forecastUpper = data.forecasts.map(f => f.upper);
         const forecastLower = data.forecasts.map(f => f.lower);
         
-        // Combine historical and forecast dates
         const allDates = [...historicalData.labels, ...forecastDates];
         const historicalValues = [...historicalData.datasets[0].data];
         const forecastValuesExtended = [...new Array(historicalValues.length).fill(null), ...forecastValues];
@@ -381,13 +339,11 @@ async function generateForecast() {
     }
 }
 
-// Apply filters
 function applyFilters() {
     loadHistoricalData();
     loadProductPerformance();
 }
 
-// Reset filters
 function resetFilters() {
     const endDate = new Date();
     const startDate = new Date();
@@ -401,7 +357,6 @@ function resetFilters() {
     applyFilters();
 }
 
-// Setup upload form
 function setupUploadForm() {
     const form = document.getElementById('uploadForm');
     form.addEventListener('submit', async function(e) {
@@ -414,10 +369,8 @@ function setupUploadForm() {
             showNotification('Please select a file', 'error');
             return;
         }
-        
         const formData = new FormData();
         formData.append('file', file);
-        
         showLoading();
         
         try {
@@ -438,7 +391,6 @@ function setupUploadForm() {
             showNotification(`Successfully imported ${data.records_count} records!`, 'success');
             closeUploadModal();
             
-            // Reload data
             setTimeout(() => {
                 loadHistoricalData();
                 loadProductPerformance();
@@ -452,8 +404,6 @@ function setupUploadForm() {
         }
     });
 }
-
-// Modal functions
 function showUploadModal() {
     document.getElementById('uploadModal').style.display = 'block';
 }
@@ -465,7 +415,6 @@ function closeUploadModal() {
     document.getElementById('uploadStatus').className = 'status-message';
 }
 
-// Close modal when clicking outside
 window.onclick = function(event) {
     const modal = document.getElementById('uploadModal');
     if (event.target == modal) {
@@ -473,7 +422,6 @@ window.onclick = function(event) {
     }
 }
 
-// Utility functions
 function formatCurrency(value) {
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -485,19 +433,15 @@ function formatCurrency(value) {
 function formatNumber(value) {
     return new Intl.NumberFormat('en-US').format(value);
 }
-
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
-
 function showNotification(message, type) {
     const statusDiv = document.getElementById('uploadStatus');
     statusDiv.textContent = message;
     statusDiv.className = `status-message ${type}`;
-    
-    // Also show as alert for non-modal notifications
     if (type === 'success') {
         setTimeout(() => {
             statusDiv.className = 'status-message';
@@ -505,7 +449,6 @@ function showNotification(message, type) {
         }, 5000);
     }
 }
-
 function showLoading() {
     document.getElementById('loadingOverlay').style.display = 'flex';
 }
@@ -513,4 +456,3 @@ function showLoading() {
 function hideLoading() {
     document.getElementById('loadingOverlay').style.display = 'none';
 }
-
