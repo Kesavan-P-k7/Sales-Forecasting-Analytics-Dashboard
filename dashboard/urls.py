@@ -1,11 +1,8 @@
-"""
-URL configuration for dashboard app.
-"""
-from django.urls import path  # type: ignore
+"""URL configuration for dashboard app."""
+
+from django.urls import path  
 from . import views
-
 app_name = 'dashboard'
-
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
     path('upload/', views.upload_csv, name='upload_csv'),
